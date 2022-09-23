@@ -189,13 +189,13 @@ class Profile extends GetView<ProfileController> {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Text(
-            '크리샤 & 로건',
+            controller.myProfile.value.name!,
             style: TextStyle(
                 fontSize: 18, fontWeight: FontWeight.w400, color: Colors.white),
           ),
         ),
         Text(
-          '행복한 아빠',
+          controller.myProfile.value.description!,
           style: TextStyle(
               fontSize: 16, fontWeight: FontWeight.w400, color: Colors.white),
         ),
@@ -256,10 +256,10 @@ class Profile extends GetView<ProfileController> {
                   controller.updateName(value);
                 }
               }),
-              _partProfileInfo(controller.myProfile.value.discription!,
+              _partProfileInfo(controller.myProfile.value.description!,
                   () async {
                 String? value = await Get.dialog(TextEditorWidget(
-                  text: controller.myProfile.value.discription!,
+                  text: controller.myProfile.value.description!,
                 ));
                 if (value != null) {
                   controller.updateDesciption(value);

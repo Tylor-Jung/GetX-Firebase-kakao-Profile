@@ -1,22 +1,46 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:kakao_profile/model/user_model.dart';
+import 'package:kakao_profile/repository/firebase_user_repository.dart';
 import 'package:kakao_profile/src/controller/image_crop_controller.dart';
 
 enum profileImageType { THUMBNAIL, BACKGROUND }
 
 class ProfileController extends GetxController {
+  static ProfileController get to => Get.find();
   RxBool isEditMyProfile = false.obs;
-  UserModel originMyProfile = UserModel(
-    name: '개빠',
-    discription: '개발하는 아빠',
-  );
+  UserModel originMyProfile = UserModel();
   Rx<UserModel> myProfile = UserModel().obs;
+
+  Future<void> authStateChanges(User? firebaseUser) async {
+    if (firebaseUser != null) {
+      UserModel? userModel =
+          await FirebaseUserRepository.findUserByUid(firebaseUser.uid);
+      if (userModel != null) {
+        originMyProfile = userModel;
+        FirebaseUserRepository.updateLastLoginDate(
+            userModel.docId, DateTime.now());
+      } else {
+        originMyProfile = UserModel(
+          uid: firebaseUser.uid,
+          name: firebaseUser.displayName,
+          avatarUrl: firebaseUser.photoURL,
+          createdTime: DateTime.now(),
+          lastLoginTime: DateTime.now(),
+        );
+        String? docId = await FirebaseUserRepository.signup(originMyProfile);
+        originMyProfile.docId = docId;
+      }
+    }
+    myProfile(UserModel.clone(originMyProfile));
+  }
+
   @override
   void onInit() {
     isEditMyProfile(false);
-    myProfile(UserModel.clone(originMyProfile));
     super.onInit();
   }
 
@@ -38,7 +62,7 @@ class ProfileController extends GetxController {
 
   void updateDesciption(String updateDesciption) {
     myProfile.update((my) {
-      my?.discription = updateDesciption;
+      my?.description = updateDesciption;
     });
   }
 
