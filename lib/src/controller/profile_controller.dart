@@ -1,10 +1,11 @@
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get/get.dart';
 import 'package:kakao_profile/model/user_model.dart';
 import 'package:kakao_profile/repository/firebase_user_repository.dart';
+import 'package:kakao_profile/repository/firestorage_reppository.dart';
 import 'package:kakao_profile/src/controller/image_crop_controller.dart';
 
 enum profileImageType { THUMBNAIL, BACKGROUND }
@@ -14,6 +15,7 @@ class ProfileController extends GetxController {
   RxBool isEditMyProfile = false.obs;
   UserModel originMyProfile = UserModel();
   Rx<UserModel> myProfile = UserModel().obs;
+  FirestorageRepository _firestorageRepository = FirestorageRepository();
 
   Future<void> authStateChanges(User? firebaseUser) async {
     if (firebaseUser != null) {
@@ -78,15 +80,52 @@ class ProfileController extends GetxController {
           break;
         case profileImageType.BACKGROUND:
           myProfile.update((my) {
-            my?.backgroudFile = file;
+            my?.backgroundFile = file;
           });
           break;
       }
     }
   }
 
+  void _updateProfileImageUrl(String downloadUrl) {
+    originMyProfile.avatarUrl = downloadUrl;
+    myProfile.update((user) => user!.avatarUrl = downloadUrl);
+  }
+
+  void _updateBackgroundImageUrl(String downloadUrl) {
+    originMyProfile.backgroundUrl = downloadUrl;
+    myProfile.update((user) => user!.backgroundUrl = downloadUrl);
+  }
+
   void save() {
     originMyProfile = myProfile.value;
+
+    if (originMyProfile.avatarFile != null) {
+      UploadTask task = _firestorageRepository.uploadImageFile(
+          originMyProfile.uid, "profile", originMyProfile.avatarFile);
+      task.snapshotEvents.listen((event) async {
+        if (event.bytesTransferred == event.totalBytes) {
+          String? downloadUrl = await event.ref.getDownloadURL();
+          _updateProfileImageUrl(downloadUrl);
+          FirebaseUserRepository.updateImageUrl(
+              originMyProfile.docId, downloadUrl, "avatar_url");
+        }
+      });
+    }
+    if (originMyProfile.backgroundFile != null) {
+      UploadTask task = _firestorageRepository.uploadImageFile(
+          originMyProfile.uid, "background", originMyProfile.backgroundFile);
+      task.snapshotEvents.listen((event) async {
+        if (event.bytesTransferred == event.totalBytes) {
+          String downloadUrl = await event.ref.getDownloadURL();
+          _updateBackgroundImageUrl(downloadUrl);
+          FirebaseUserRepository.updateImageUrl(
+              originMyProfile.docId, downloadUrl, "background_url");
+        }
+      });
+    }
+
+    FirebaseUserRepository.updateData(originMyProfile.docId, originMyProfile);
     toggleEditProfile();
   }
 }

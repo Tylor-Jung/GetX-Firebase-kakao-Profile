@@ -10,7 +10,7 @@ class UserModel {
   String? avatarUrl;
   String? backgroundUrl;
   File? avatarFile;
-  File? backgroudFile;
+  File? backgroundFile;
   DateTime? lastLoginTime;
   DateTime? createdTime;
 
@@ -21,8 +21,6 @@ class UserModel {
     this.description = '',
     this.avatarUrl,
     this.backgroundUrl,
-    this.avatarFile,
-    this.backgroudFile,
     this.lastLoginTime,
     this.createdTime,
   });
@@ -41,7 +39,7 @@ class UserModel {
 
   void initImageFile() {
     avatarFile = null;
-    backgroudFile = null;
+    backgroundFile = null;
   }
 
   UserModel.fromJson(Map<String, dynamic> json, String docId)
@@ -50,7 +48,7 @@ class UserModel {
         name = json['name'] as String,
         description = json['description'] as String,
         avatarUrl = json['avatar_url'] as String,
-        backgroundUrl = json['background_url'],
+        backgroundUrl = json["background_url"],
         lastLoginTime = json['last_login_time'].toDate(),
         createdTime = json['created_time'].toDate();
 

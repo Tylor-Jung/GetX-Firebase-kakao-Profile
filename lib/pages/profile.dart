@@ -72,17 +72,36 @@ class Profile extends GetView<ProfileController> {
         onTap: () {
           controller.pickedImage(profileImageType.BACKGROUND);
         },
-        child: Obx(() => Container(
-              color: Colors.transparent, //배경화면 투명
-              child: controller.myProfile.value.backgroudFile == null
-                  ? Container()
-                  : Image.file(
-                      controller.myProfile.value.backgroudFile!,
-                      fit: BoxFit.cover,
-                    ),
-            )),
+        child: Obx(
+          () => Opacity(
+            opacity: 0.5,
+            child: Container(
+                color: Colors.transparent, //배경화면 투명
+                child: controller.isEditMyProfile.value
+                    ? _editBackgroundImageWidget()
+                    : _backgroundImageWidget()),
+          ),
+        ),
       ),
     );
+  }
+
+  Widget _editBackgroundImageWidget() {
+    return controller.myProfile.value.backgroundFile == null
+        ? _backgroundImageWidget()
+        : Image.file(
+            controller.myProfile.value.backgroundFile!,
+            fit: BoxFit.cover,
+          );
+  }
+
+  Widget _backgroundImageWidget() {
+    return controller.myProfile.value.backgroundUrl == null
+        ? Container()
+        : Image.network(
+            controller.myProfile.value.backgroundUrl!,
+            fit: BoxFit.cover,
+          );
   }
 
   Widget _oneButton(IconData icon, String title, Function()? ontap) {
@@ -130,6 +149,27 @@ class Profile extends GetView<ProfileController> {
     );
   }
 
+  Widget _editProfileImageWidget() {
+    return controller.myProfile.value.avatarFile == null
+        ? _profileImageWidget()
+        : Image.file(
+            controller.myProfile.value.avatarFile!,
+            fit: BoxFit.cover,
+          );
+  }
+
+  Widget _profileImageWidget() {
+    return controller.myProfile.value.avatarUrl == null
+        ? Image.network(
+            'https://i.stack.imgur.com/l60Hf.png',
+            fit: BoxFit.cover,
+          )
+        : Image.network(
+            controller.myProfile.value.avatarUrl!,
+            fit: BoxFit.cover,
+          );
+  }
+
   Widget _profileImage() {
     return GestureDetector(
       onTap: () {
@@ -144,18 +184,11 @@ class Profile extends GetView<ProfileController> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(40),
                   child: Container(
-                    width: 100,
-                    height: 100,
-                    child: controller.myProfile.value.avatarFile == null
-                        ? Image.network(
-                            'https://i.stack.imgur.com/l60Hf.png',
-                            fit: BoxFit.cover,
-                          )
-                        : Image.file(
-                            controller.myProfile.value.avatarFile!,
-                            fit: BoxFit.cover,
-                          ),
-                  ),
+                      width: 100,
+                      height: 100,
+                      child: controller.isEditMyProfile.value
+                          ? _editProfileImageWidget()
+                          : _profileImageWidget()),
                 ),
               ),
               controller.isEditMyProfile.value
@@ -305,7 +338,7 @@ class Profile extends GetView<ProfileController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xff3f3f3f),
+      backgroundColor: Colors.black,
       resizeToAvoidBottomInset: false,
       body: Container(
         child: Stack(

@@ -19,7 +19,17 @@ class FirebaseUserRepository {
   }
 
   static void updateLastLoginDate(String? docId, DateTime time) {
-    CollectionReference users = FirebaseFirestore.instance.collection('Users');
+    var users = FirebaseFirestore.instance.collection('Users');
     users.doc(docId).update({'data_last_login': time});
+  }
+
+  static void updateImageUrl(String? docId, String? url, String fieldName) {
+    var users = FirebaseFirestore.instance.collection('Users');
+    users.doc(docId).update({fieldName: url});
+  }
+
+  static void updateData(String? docId, UserModel user) {
+    var users = FirebaseFirestore.instance.collection('Users');
+    users.doc(docId).update(user.toMap());
   }
 }
